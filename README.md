@@ -1,6 +1,6 @@
-# ad_hoc_messenger
+# Ad-hoc
 
-A new Flutter project.
+A proof-of-concept implementation of an ad-hoc messenger based on Google Nearby API.
 
 ## Getting Started
 
