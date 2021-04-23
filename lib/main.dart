@@ -1,6 +1,10 @@
+import 'package:cat_avatar_generator/cat_avatar_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
+import 'package:dartz/dartz.dart';
+import 'state.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
@@ -24,13 +28,15 @@ class MyApp extends StatelessWidget {
       initialRoute: '/login',
       routes: {
         '/login': (context) => LoginPage(),
-        '/chats': (context) => HomePage()
+        '/home': (context) => MainScreen(),
       },
     );
   }
 }
 
 class LoginPage extends StatelessWidget {
+  final handleController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,19 +56,22 @@ class LoginPage extends StatelessWidget {
                 fillColor: Colors.white,
                 hintText: "Handle",
               ),
+              controller: handleController,
             ),
             Container(
               height: 20.0,
             ),
             OutlinedButton(
               child: Text(
-                "Войти",
+                "Login",
                 style: TextStyle(
                   fontSize: 20.0,
                 ),
               ),
               onPressed: () {
-                Navigator.pushReplacementNamed(context, '/chats');
+                if (handleController.text.isNotEmpty)
+                  Navigator.pushReplacementNamed(context, '/home',
+                      arguments: MessengerState(handleController.text, None()));
               },
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Colors.white),
@@ -76,30 +85,115 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-// class MyHomePage extends StatefulWidget {
-//   MyHomePage({Key key, this.title}) : super(key: key);
+class MainScreen extends StatelessWidget {
+  final _navigatorKey = GlobalKey<NavigatorState>();
 
-//   final String title;
-
-//   @override
-//   _MyHomePageState createState() => _MyHomePageState();
-// }
-
-class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Ad-hoc messenger"),
+        title: Text("Ad-hoc Messenger"),
+      ),
+      body: Navigator(
+        key: _navigatorKey,
+        initialRoute: '/',
+        onGenerateRoute: (RouteSettings settings) {
+          WidgetBuilder builder;
+          switch (settings.name) {
+            case '/':
+              builder = (BuildContext context) => ChatsPage();
+              break;
+            case '/settings':
+              builder = (BuildContext context) => SettingsPage();
+              break;
+            default:
+              throw "Invalid route name";
+          }
+
+          return MaterialPageRoute(
+            builder: builder,
+            settings: settings,
+          );
+        },
       ),
       bottomNavigationBar: ConvexAppBar(
-        style: TabStyle.react,
-        backgroundColor: Colors.purple,
-        items: [
-          TabItem(icon: Icons.message, title: "Messages"),
-          TabItem(icon: Icons.settings, title: "Settings"),
-        ],
-      ),
+          style: TabStyle.react,
+          backgroundColor: Colors.purple,
+          items: [
+            TabItem(icon: Icons.message, title: "Messages"),
+            TabItem(icon: Icons.settings, title: "Settings"),
+          ],
+          onTap: (int i) {
+            final pages = <String>['/', '/settings'];
+            _navigatorKey.currentState.pushReplacementNamed(pages[i]);
+          }),
     );
+  }
+}
+
+class ChatEntry extends StatelessWidget {
+  final Option<String> _handle;
+  ChatEntry(this._handle);
+
+  @override
+  Widget build(BuildContext context) {
+    String unfolded_handle =
+        _handle.cata(() => "Local chat", (handle) => '@' + handle);
+
+    return Slidable(
+      actionPane: SlidableScrollActionPane(),
+      actionExtentRatio: 0.15,
+      child: Container(
+        color: Colors.white,
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Colors.grey,
+            child: Image(image: MeowatarImage.fromString(unfolded_handle)),
+          ),
+          title: Text(unfolded_handle),
+        ),
+      ),
+      actions: <Widget>[
+        IconSlideAction(
+          caption: "Wipe",
+          color: Colors.yellowAccent,
+          icon: Icons.remove,
+          onTap: () {},
+        ),
+        IconSlideAction(
+          caption: "Delete",
+          color: Colors.redAccent,
+          icon: Icons.delete,
+          onTap: () {},
+        )
+      ],
+    );
+  }
+}
+
+class ChatsPage extends StatelessWidget {
+  final availableChats = <Option<String>>[
+    None(),
+    Some("fckxorg"),
+    Some("BorisTab"),
+    Some("AlgebraicWolf"),
+    Some("akudrinsky")
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ModalRoute.of(context).settings.arguments as MessengerState;
+    final groupChat = ChatEntry(None());
+
+    return ListView(
+      children: availableChats.map((handle) => ChatEntry(handle)).toList(),
+    );
+  }
+}
+
+class SettingsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Text("Ностройки");
   }
 }
