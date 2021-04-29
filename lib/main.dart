@@ -173,11 +173,10 @@ class ChatEntry extends StatelessWidget {
 
 class ChatsPage extends StatelessWidget {
   final availableChats = <Option<String>>[
-    None(),
     Some("fckxorg"),
     Some("BorisTab"),
     Some("AlgebraicWolf"),
-    Some("akudrinsky")
+    Some("akudrinsky"),
   ];
 
   @override
@@ -186,7 +185,8 @@ class ChatsPage extends StatelessWidget {
     final groupChat = ChatEntry(None());
 
     return ListView(
-      children: availableChats.map((handle) => ChatEntry(handle)).toList(),
+      children: [groupChat] +
+          availableChats.map((handle) => ChatEntry(handle)).toList(),
     );
   }
 }
