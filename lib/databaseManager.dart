@@ -4,6 +4,8 @@ import 'package:path/path.dart';
 
 import 'package:ad_hoc_messenger/utility/messages.dart';
 
+import 'package:ad_hoc_messenger/utility/contact.dart';
+
 class DatabaseManager {
   static final DatabaseManager _instance =
       DatabaseManager._privateConstructor();
