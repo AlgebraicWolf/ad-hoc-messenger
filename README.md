@@ -2,7 +2,7 @@
 
 A proof-of-concept implementation of an ad-hoc messenger based on Google Nearby API.
 
-## Getting Started
+## Getting StartedA
 
 This project is a starting point for a Flutter application.
 
