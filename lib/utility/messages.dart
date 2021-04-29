@@ -5,6 +5,8 @@ class ChatMessage {
   bool mine; // Whether the message is mine
   String text; // Contents of a message
   DateTime sentAt; // Time of message reception
+
+  ChatMessage(this.otherHandle, this.mine, this.text, this.sentAt);
 }
 
 // Lower-level network representationg of a message object
@@ -15,7 +17,7 @@ class NetworkMessage {
   DateTime sentAt; // Time of message creation
 
   // TODO Maybe insert time for rendering as well
-  NetworkMessage(this.handle, this.randomId, this.text, sentAt);
+  NetworkMessage(this.handle, this.randomId, this.text, this.sentAt);
 
   NetworkMessage.fromChatMessage(ChatMessage msg, int randomId, String handle)
       : handle = handle,
