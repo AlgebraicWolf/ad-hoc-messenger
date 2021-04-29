@@ -11,6 +11,7 @@ import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:ad_hoc_messenger/databaseManager.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   DatabaseManager().initDB();
   DatabaseManager().newContact(Contact('wolf', 'key0', 'mr volkov'));
   SystemChrome.setSystemUIOverlayStyle(
