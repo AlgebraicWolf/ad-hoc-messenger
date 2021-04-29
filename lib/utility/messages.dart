@@ -9,6 +9,14 @@ class ChatMessage {
   ChatMessage(this.otherHandle, this.mine, this.text, this.sentAt);
 }
 
+class Contact {
+  String handle;
+  String publicKey;
+  String name;
+
+  Contact(this.handle, this.publicKey, this.name);
+}
+
 // Lower-level network representationg of a message object
 class NetworkMessage {
   String handle; // Handle of a message source

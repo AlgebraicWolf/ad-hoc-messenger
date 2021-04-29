@@ -37,6 +37,10 @@ dependencies:
   cat_avatar_generator: ^0.0.2
   # The thing that allows us to do all the ad-hoc things 
   flutter_nearby_connections: 
+  # SQL support
+  sqflite: any
+  path_provider: any
+
 
 dev_dependencies:
   flutter_test:
