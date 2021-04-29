@@ -5,6 +5,7 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:dartz/dartz.dart';
 import 'state.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
