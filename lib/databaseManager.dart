@@ -1,9 +1,7 @@
 import 'package:sqflite/sqflite.dart';
-
 import 'package:path/path.dart';
 
 import 'package:ad_hoc_messenger/utility/messages.dart';
-
 import 'package:ad_hoc_messenger/utility/contact.dart';
 
 class DatabaseManager {
@@ -82,7 +80,6 @@ class DatabaseManager {
 
     return messages;
   }
-  
 
   Future<List<Contact>> getUserContacts() async {
     var database = await db;

@@ -1,3 +1,4 @@
+import 'package:ad_hoc_messenger/utility/contact.dart';
 import 'package:cat_avatar_generator/cat_avatar_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +8,11 @@ import 'state.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 
+import 'package:ad_hoc_messenger/databaseManager.dart';
+
 void main() {
+  DatabaseManager().initDB();
+  DatabaseManager().newContact(Contact('wolf', 'key0', 'mr volkov'));
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle.light.copyWith(
       systemNavigationBarColor: Colors.purple,
@@ -173,21 +178,58 @@ class ChatEntry extends StatelessWidget {
 }
 
 class ChatsPage extends StatelessWidget {
+  /*
   final availableChats = <Option<String>>[
     Some("fckxorg"),
     Some("BorisTab"),
     Some("AlgebraicWolf"),
     Some("akudrinsky"),
   ];
+  */
 
   @override
   Widget build(BuildContext context) {
     final state = ModalRoute.of(context).settings.arguments as MessengerState;
     final groupChat = ChatEntry(None());
-
-    return ListView(
+    ListView(
       children: [groupChat] +
           availableChats.map((handle) => ChatEntry(handle)).toList(),
+    );
+
+    return FutureBuilder(
+      future: DatabaseManager().db,
+      builder: (BuildContext context, AsyncSnapshot<dynamic> dbOpened) {
+        if (dbOpened.hasData) {
+          Future<List<Contact>> contacts = DatabaseManager().getUserContacts();
+          return FutureBuilder(
+            future: contacts,
+            builder:
+                (BuildContext context, AsyncSnapshot<List<Contact>> snapshot) {
+              if (snapshot.hasData) {
+                <Option<String>> chats[];
+
+
+                return ListView(
+                  children: [groupChat] +
+                      snapshot.data
+                          .map((handle) => ChatEntry(handle))
+                          .toList(),
+                );
+              } else if (snapshot.hasError) {
+                print(snapshot.error.toString());
+                return Text("Error with contacts rout");
+              } else {
+                return Text("Waiting");
+              }
+            },
+          );
+        } else if (dbOpened.hasError) {
+          print(dbOpened.error.toString());
+          return Text("Error loading DB");
+        } else {
+          return Text("Waiting for DB");
+        }
+      },
     );
   }
 }
