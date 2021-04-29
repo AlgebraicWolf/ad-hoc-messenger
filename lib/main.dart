@@ -187,47 +187,31 @@ class ChatsPage extends StatelessWidget {
   ];
   */
 
+  Future<List<Contact>> _getUserContacts() async {
+    await DatabaseManager().db;
+    return DatabaseManager().getUserContacts();
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ModalRoute.of(context).settings.arguments as MessengerState;
     final groupChat = ChatEntry(None());
-    ListView(
-      children: [groupChat] +
-          availableChats.map((handle) => ChatEntry(handle)).toList(),
-    );
 
     return FutureBuilder(
-      future: DatabaseManager().db,
-      builder: (BuildContext context, AsyncSnapshot<dynamic> dbOpened) {
-        if (dbOpened.hasData) {
-          Future<List<Contact>> contacts = DatabaseManager().getUserContacts();
-          return FutureBuilder(
-            future: contacts,
-            builder:
-                (BuildContext context, AsyncSnapshot<List<Contact>> snapshot) {
-              if (snapshot.hasData) {
-                <Option<String>> chats[];
+      future: _getUserContacts(),
+      builder: (BuildContext context, AsyncSnapshot<List<Contact>> snapshot) {
+        if (snapshot.hasData) {
+          final handles = snapshot.data.map((e) => Some(e.handle));
 
-
-                return ListView(
-                  children: [groupChat] +
-                      snapshot.data
-                          .map((handle) => ChatEntry(handle))
-                          .toList(),
-                );
-              } else if (snapshot.hasError) {
-                print(snapshot.error.toString());
-                return Text("Error with contacts rout");
-              } else {
-                return Text("Waiting");
-              }
-            },
+          return ListView(
+            children: [groupChat] +
+                handles.map((handle) => ChatEntry(handle)).toList(),
           );
-        } else if (dbOpened.hasError) {
-          print(dbOpened.error.toString());
-          return Text("Error loading DB");
+        } else if (snapshot.hasError) {
+          print(snapshot.error.toString());
+          return Text("Error with contacts rout");
         } else {
-          return Text("Waiting for DB");
+          return Text("Waiting");
         }
       },
     );
