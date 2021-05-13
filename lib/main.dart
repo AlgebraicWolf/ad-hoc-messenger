@@ -110,6 +110,9 @@ class MainScreen extends StatelessWidget {
             case '/':
               builder = (BuildContext context) => ChatsPage();
               break;
+            case '/addFriend':
+              builder = (BuildContext context) => AddFriendPage();
+              break;
             case '/settings':
               builder = (BuildContext context) => SettingsPage();
               break;
@@ -128,10 +131,11 @@ class MainScreen extends StatelessWidget {
           backgroundColor: Colors.purple,
           items: [
             TabItem(icon: Icons.message, title: "Messages"),
+            TabItem(icon: Icons.add, title: "Add friend"),
             TabItem(icon: Icons.settings, title: "Settings"),
           ],
           onTap: (int i) {
-            final pages = <String>['/', '/settings'];
+            final pages = <String>['/', '/addFriend', '/settings'];
             _navigatorKey.currentState.pushReplacementNamed(pages[i]);
           }),
     );
@@ -179,18 +183,10 @@ class ChatEntry extends StatelessWidget {
 }
 
 class ChatsPage extends StatelessWidget {
-  /*
-  final availableChats = <Option<String>>[
-    Some("fckxorg"),
-    Some("BorisTab"),
-    Some("AlgebraicWolf"),
-    Some("akudrinsky"),
-  ];
-  */
-
   Future<List<Contact>> _getUserContacts() async {
-    await DatabaseManager().db;
-    return DatabaseManager().getUserContacts();
+    return DatabaseManager()
+        .db
+        .then((_) => DatabaseManager().getUserContacts());
   }
 
   @override
@@ -203,14 +199,17 @@ class ChatsPage extends StatelessWidget {
       builder: (BuildContext context, AsyncSnapshot<List<Contact>> snapshot) {
         if (snapshot.hasData) {
           final handles = snapshot.data.map((e) => Some(e.handle));
+          final entries =
+              [groupChat] + handles.map((handle) => ChatEntry(handle)).toList();
 
-          return ListView(
-            children: [groupChat] +
-                handles.map((handle) => ChatEntry(handle)).toList(),
+          return ListView.separated(
+            itemCount: entries.length,
+            separatorBuilder: (BuildContext, int) => Divider(),
+            itemBuilder: (BuildContext, int index) => entries[index],
           );
         } else if (snapshot.hasError) {
           print(snapshot.error.toString());
-          return Text("Error with contacts rout");
+          return Text("Error with contacts route");
         } else {
           return Text("Waiting");
         }
@@ -223,5 +222,12 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text("Ностройки");
+  }
+}
+
+class AddFriendPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Text("Here you can add a friend");
   }
 }
