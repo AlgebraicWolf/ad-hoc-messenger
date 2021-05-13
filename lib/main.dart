@@ -7,6 +7,7 @@ import 'package:dartz/dartz.dart';
 import 'state.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
+import 'package:dash_chat/dash_chat.dart';
 
 import 'package:ad_hoc_messenger/databaseManager.dart';
 
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginPage(),
         '/home': (context) => MainScreen(),
+        '/chat': (context) => ChatPage(),
       },
     );
   }
@@ -97,6 +99,9 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = ModalRoute.of(context).settings.arguments as MessengerState;
+    print("Current handle is ${state.handle}");
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Ad-hoc Messenger"),
@@ -108,16 +113,20 @@ class MainScreen extends StatelessWidget {
           WidgetBuilder builder;
           switch (settings.name) {
             case '/':
-              builder = (BuildContext context) => ChatsPage();
+              builder = (BuildContext context) => ChatsPage(state);
               break;
             case '/addFriend':
-              builder = (BuildContext context) => AddFriendPage();
+              builder = (BuildContext context) => AddFriendPage(state);
               break;
             case '/settings':
-              builder = (BuildContext context) => SettingsPage();
+              builder = (BuildContext context) => SettingsPage(state);
+              break;
+            case '/chat':
+              Navigator.pushNamed(context, '/chat',
+                  arguments: settings.arguments);
               break;
             default:
-              throw "Invalid route name";
+              throw "Invalid route name, lol";
           }
 
           return MaterialPageRoute(
@@ -144,7 +153,8 @@ class MainScreen extends StatelessWidget {
 
 class ChatEntry extends StatelessWidget {
   final Option<String> _handle;
-  ChatEntry(this._handle);
+  final MessengerState _state;
+  ChatEntry(this._handle, this._state);
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +172,10 @@ class ChatEntry extends StatelessWidget {
             child: Image(image: MeowatarImage.fromString(unfolded_handle)),
           ),
           title: Text(unfolded_handle),
+          onTap: () {
+            Navigator.pushNamed(context, '/chat',
+                arguments: _state.copy(friend: _handle));
+          },
         ),
       ),
       actions: <Widget>[
@@ -183,6 +197,9 @@ class ChatEntry extends StatelessWidget {
 }
 
 class ChatsPage extends StatelessWidget {
+  final MessengerState _state;
+  ChatsPage(this._state);
+
   Future<List<Contact>> _getUserContacts() async {
     return DatabaseManager()
         .db
@@ -191,16 +208,16 @@ class ChatsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = ModalRoute.of(context).settings.arguments as MessengerState;
-    final groupChat = ChatEntry(None());
+    final state = _state;
+    final groupChat = ChatEntry(None(), state);
 
     return FutureBuilder(
       future: _getUserContacts(),
       builder: (BuildContext context, AsyncSnapshot<List<Contact>> snapshot) {
         if (snapshot.hasData) {
           final handles = snapshot.data.map((e) => Some(e.handle));
-          final entries =
-              [groupChat] + handles.map((handle) => ChatEntry(handle)).toList();
+          final entries = [groupChat] +
+              handles.map((handle) => ChatEntry(handle, state)).toList();
 
           return ListView.separated(
             itemCount: entries.length,
@@ -219,6 +236,9 @@ class ChatsPage extends StatelessWidget {
 }
 
 class SettingsPage extends StatelessWidget {
+  final MessengerState _state;
+  SettingsPage(this._state);
+
   @override
   Widget build(BuildContext context) {
     return Text("Ностройки");
@@ -226,8 +246,38 @@ class SettingsPage extends StatelessWidget {
 }
 
 class AddFriendPage extends StatelessWidget {
+  final MessengerState _state;
+  AddFriendPage(this._state);
+
   @override
   Widget build(BuildContext context) {
     return Text("Here you can add a friend");
+    // TODO Get user handle and pull the required data from the server
+  }
+}
+
+class ChatPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final state = ModalRoute.of(context).settings.arguments as MessengerState;
+    final friend = state.friend; // Get friend we're currently talking to
+
+    // TODO: Make the interface
+    // TODO: Make the helper classes like chat bubbles etc
+    // TODO: Find the way to pull message history
+    // TODO: Figure out how to do things we need to do
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          state.friend.cata(() => "Local chat", (a) => "@" + a),
+        ),
+      ),
+      body: DashChat(
+        user: ChatUser(),
+        onSend: (ChatMessage msg) {},
+        messages: [],
+      ),
+    );
   }
 }

@@ -7,7 +7,7 @@ class MessengerState {
   MessengerState(this._handle, this._friend);
 
   // Copy "constructor" for partial updates
-  MessengerState copy({String handle, String friend}) =>
+  MessengerState copy({String handle, Option<String> friend}) =>
       new MessengerState(handle ?? this._handle, friend ?? this._friend);
 
   String get handle => _handle;

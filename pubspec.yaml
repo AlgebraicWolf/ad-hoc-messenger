@@ -37,6 +37,8 @@ dependencies:
   cat_avatar_generator: ^0.0.2
   # The thing that allows us to do all the ad-hoc things 
   flutter_nearby_connections: 
+  # Already complete chat UI implementation that would help us avoid spending time on boring stuff
+  dash_chat: ^1.1.15
   # SQL support
   sqflite: any
   path_provider: any
