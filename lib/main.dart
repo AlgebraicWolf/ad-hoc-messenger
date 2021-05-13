@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:dartz/dartz.dart';
 import 'state.dart';
+import 'utility/contact.dart';
+import 'utility/messages.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
-import 'package:dash_chat/dash_chat.dart';
+import 'package:dash_chat/dash_chat.dart' as DashChat;
 
 import 'package:ad_hoc_messenger/databaseManager.dart';
 
@@ -257,6 +259,25 @@ class AddFriendPage extends StatelessWidget {
 }
 
 class ChatPage extends StatelessWidget {
+  DashChat.ChatUser _userFromHandle(String handle) {
+    return DashChat.ChatUser(
+      name: handle,
+      uid: handle,
+    );
+  }
+
+  Future<List<ChatMessage>> _getCorrespondance(Option<String> handle) async {
+    return [
+      ChatMessage('wolf', true, 'awooo', DateTime.parse('2021-05-13 21:07:00')),
+      ChatMessage(
+          'wolf', false, 'awooooo', DateTime.parse('2021-05-13 21:08:00')),
+      ChatMessage(
+          'wolf', true, 'awoooooo', DateTime.parse('2021-05-13 21:09:00')),
+      ChatMessage(
+          'wolf', false, 'awooooo', DateTime.parse('2021-05-13 21:10:00')),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ModalRoute.of(context).settings.arguments as MessengerState;
@@ -273,10 +294,30 @@ class ChatPage extends StatelessWidget {
           state.friend.cata(() => "Local chat", (a) => "@" + a),
         ),
       ),
-      body: DashChat(
-        user: ChatUser(),
-        onSend: (ChatMessage msg) {},
-        messages: [],
+      body: FutureBuilder(
+        future: _getCorrespondance(friend),
+        builder: (BuildContext context, AsyncSnapshot<List<ChatMessage>> msgs) {
+          if (msgs.hasData) {
+            return DashChat.DashChat(
+              user: _userFromHandle(state.handle),
+              onSend: (DashChat.ChatMessage msg) {},
+              avatarBuilder: (DashChat.ChatUser user) => CircleAvatar(
+                backgroundColor: Colors.grey,
+                child: Image(image: MeowatarImage.fromString('@' + user.name)),
+              ),
+              messages: msgs.data
+                  .map((message) => DashChat.ChatMessage(
+                        text: message.text,
+                        user: _userFromHandle(
+                            message.mine ? state.handle : message.otherHandle),
+                        createdAt: message.sentAt,
+                      ))
+                  .toList(),
+            );
+          } else {
+            return Container();
+          }
+        },
       ),
     );
   }
