@@ -49,8 +49,8 @@ class DatabaseManager {
     return db;
   }
 
-  void newMessage(ChatMessage msg) async {
-    db.then(
+  Future<void> newMessage(ChatMessage msg) async {
+    return db.then(
       (value) async {
         await value.rawInsert(
             'INSERT INTO Messages VALUES (\'${msg.otherHandle}\', \'${msg.text}\', \'${msg.sentAt.toString()}\', \'${msg.mine}\')');
@@ -60,9 +60,10 @@ class DatabaseManager {
 
   Future<List<ChatMessage>> getCorrespondance(Contact contact) async {
     var database = await db;
-    var records = await database.rawQuery('SELECT * FROM Messages WHERE \'handle\' = ?', ['\'${contact.handle}\'']);
+    var records = await database.rawQuery(
+        'SELECT * FROM Messages WHERE otherHandle = ?', ['${contact.handle}']);
 
-    print(records.length);
+    print('Received ${records.length} records from db');
 
     var messages = new Future<List<ChatMessage>>.value([]);
     for (var i = 0; i < records.length; i++) {
@@ -70,9 +71,9 @@ class DatabaseManager {
         value.add(
           ChatMessage(
             records[i]['otherHandle'] as String,
-            records[i]['isReceived'] as String == 'true',
-            records[i]['data'] as String,
-            DateTime.parse(records[i]['time'] as String),
+            records[i]['mine'] as String == 'true',
+            records[i]['text'] as String,
+            DateTime.parse(records[i]['sentAt'] as String),
           ),
         );
       });
@@ -99,7 +100,6 @@ class DatabaseManager {
 
     return contacts;
   }
-  
 
   void newContact(Contact contact) {
     db.then(

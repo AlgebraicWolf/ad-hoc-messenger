@@ -124,6 +124,7 @@ class MainScreen extends StatelessWidget {
               builder = (BuildContext context) => SettingsPage(state);
               break;
             case '/chat':
+              builder = (BuildContext context) => ChatsPage(state);
               Navigator.pushNamed(context, '/chat',
                   arguments: settings.arguments);
               break;
@@ -267,22 +268,17 @@ class ChatPage extends StatelessWidget {
   }
 
   Future<List<ChatMessage>> _getCorrespondance(Option<String> handle) async {
-    return [
-      ChatMessage('wolf', true, 'awooo', DateTime.parse('2021-05-13 21:07:00')),
-      ChatMessage(
-          'wolf', false, 'awooooo', DateTime.parse('2021-05-13 21:08:00')),
-      ChatMessage(
-          'wolf', true, 'awoooooo', DateTime.parse('2021-05-13 21:09:00')),
-      ChatMessage(
-          'wolf', false, 'awooooo', DateTime.parse('2021-05-13 21:10:00')),
-    ];
+    final unfolded_handle = handle.cata(() => "__groupchat__", (a) => a);
+
+    return DatabaseManager()
+        .getCorrespondance(Contact(unfolded_handle, "", ""));
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ModalRoute.of(context).settings.arguments as MessengerState;
     final friend = state.friend; // Get friend we're currently talking to
-
+    final unfoldedFriend = friend.cata(() => '__groupchat__', (a) => a);
     // TODO: Make the interface
     // TODO: Make the helper classes like chat bubbles etc
     // TODO: Find the way to pull message history
@@ -296,23 +292,32 @@ class ChatPage extends StatelessWidget {
       ),
       body: FutureBuilder(
         future: _getCorrespondance(friend),
-        builder: (BuildContext context, AsyncSnapshot<List<ChatMessage>> msgs) {
+        builder: (BuildContext ctx, AsyncSnapshot<List<ChatMessage>> msgs) {
           if (msgs.hasData) {
             return DashChat.DashChat(
               user: _userFromHandle(state.handle),
-              onSend: (DashChat.ChatMessage msg) {},
+              onSend: (DashChat.ChatMessage msg) {
+                print(
+                    "Sending ${state.handle == msg.user.uid} message ${msg.text} from ${msg.user.name} created at ${msg.createdAt}");
+
+                DatabaseManager()
+                    .newMessage(ChatMessage(unfoldedFriend,
+                        msg.user.uid == state.handle, msg.text, msg.createdAt))
+                    .then((_) => (context as Element).markNeedsBuild());
+              },
               avatarBuilder: (DashChat.ChatUser user) => CircleAvatar(
                 backgroundColor: Colors.grey,
                 child: Image(image: MeowatarImage.fromString('@' + user.name)),
               ),
-              messages: msgs.data
-                  .map((message) => DashChat.ChatMessage(
-                        text: message.text,
-                        user: _userFromHandle(
-                            message.mine ? state.handle : message.otherHandle),
-                        createdAt: message.sentAt,
-                      ))
-                  .toList(),
+              messages: msgs.data.map((message) {
+                print(message.mine);
+                return DashChat.ChatMessage(
+                  text: message.text,
+                  user: _userFromHandle(
+                      message.mine ? state.handle : message.otherHandle),
+                  createdAt: message.sentAt,
+                );
+              }).toList(),
             );
           } else {
             return Container();
