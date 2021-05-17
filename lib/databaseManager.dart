@@ -31,18 +31,21 @@ class DatabaseManager {
   Future<Database> initDB() async {
     var databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'ad_hoc_client.db');
-    await ((await openDatabase(path)).close());
-    await deleteDatabase(path);
+    await openDatabase(path)
+        .then((a) => a.close())
+        .then((_) => deleteDatabase(path));
+
     var db = await openDatabase(
       path,
       version: 1,
       onCreate: (Database db, int version) async {
-        await db.execute(
-            'CREATE TABLE Messages (otherHandle TEXT, text TEXT, sentAt TEXT, mine TEXT)');
-        await db.execute(
-            'CREATE TABLE Contacts (handle TEXT, public_key TEXT, name TEXT)');
-        await db.execute(
-            'CREATE TABLE Keys (public_key TEXT, private_key TEXT, identity_key TEXT)');
+        await db
+            .execute(
+                'CREATE TABLE IF NOT EXISTS Messages (otherHandle TEXT, text TEXT, sentAt TEXT, mine TEXT)')
+            .then((_) => db.execute(
+                'CREATE TABLE IF NOT EXISTS Contacts (handle TEXT, public_key TEXT, name TEXT)'))
+            .then((_) => db.execute(
+                'CREATE TABLE IF NOT EXISTS Keys (public_key TEXT, private_key TEXT, identity_key TEXT)'));
       },
     );
 

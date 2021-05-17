@@ -273,11 +273,15 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<List<ChatMessage>> _getCorrespondance(Option<String> handle) async {
-    final unfolded_handle = handle.cata(() => "__groupchat__", (a) => a);
-
-    return DatabaseManager()
-        .getCorrespondance(Contact(unfolded_handle, "", ""));
+    return handle.cata(() => _groupChatHistory,
+        (a) => DatabaseManager().getCorrespondance(Contact(a, "", "")));
   }
+
+  List<ChatMessage> _groupChatHistory = []; // History of a group chat messages
+
+  void _sendPrivateMessage(ChatMessage msg) {}
+
+  void _sendGroupMessage(ChatMessage msg) {}
 
   @override
   Widget build(BuildContext context) {
