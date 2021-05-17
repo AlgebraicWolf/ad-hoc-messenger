@@ -3,7 +3,7 @@ import 'package:cat_avatar_generator/cat_avatar_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
-import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart' hide State;
 import 'state.dart';
 import 'utility/contact.dart';
 import 'utility/messages.dart';
@@ -259,7 +259,12 @@ class AddFriendPage extends StatelessWidget {
   }
 }
 
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
+  @override
+  _ChatPageState createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
   DashChat.ChatUser _userFromHandle(String handle) {
     return DashChat.ChatUser(
       name: handle,
