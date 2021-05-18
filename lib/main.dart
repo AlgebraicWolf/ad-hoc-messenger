@@ -279,9 +279,13 @@ class _ChatPageState extends State<ChatPage> {
 
   List<ChatMessage> _groupChatHistory = []; // History of a group chat messages
 
-  void _sendPrivateMessage(ChatMessage msg) {}
+  void _sendPrivateMessage(ChatMessage msg) {
+    DatabaseManager().newMessage(msg);
+  }
 
-  void _sendGroupMessage(ChatMessage msg) {}
+  void _sendGroupMessage(ChatMessage msg) {
+    _groupChatHistory.add(msg);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -309,10 +313,14 @@ class _ChatPageState extends State<ChatPage> {
                 print(
                     "Sending ${state.handle == msg.user.uid} message ${msg.text} from ${msg.user.name} created at ${msg.createdAt}");
 
-                DatabaseManager()
-                    .newMessage(ChatMessage(unfoldedFriend,
-                        msg.user.uid == state.handle, msg.text, msg.createdAt))
-                    .then((_) => (context as Element).markNeedsBuild());
+                final chatMsg = ChatMessage(unfoldedFriend,
+                    msg.user.uid == state.handle, msg.text, msg.createdAt);
+
+                setState(() {
+                  state.friend.cata<void, void>(
+                      () => _sendGroupMessage(chatMsg),
+                      (_) => _sendPrivateMessage(chatMsg));
+                });
               },
               avatarBuilder: (DashChat.ChatUser user) => CircleAvatar(
                 backgroundColor: Colors.grey,
